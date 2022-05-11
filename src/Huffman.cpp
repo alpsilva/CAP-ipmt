@@ -1,5 +1,6 @@
 #include <unordered_map>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <queue>
 
@@ -83,9 +84,9 @@ string decode(Node* root, int &index, string encodedText){
 }
 
 // Builds the huffman tree and 
-void buildHuffmanTree(string text){
+string buildHuffmanTree(string text){
     if (text == ""){
-        return;
+        return "";
     }
 
     // counts the frequency of each character in the text.
@@ -158,11 +159,64 @@ void buildHuffmanTree(string text){
     }
 
     cout << "\nThe decoded string is:\n" << decodedString << endl;
+
+    return encodedString;
+}
+
+void writeCodeInBits(string filePath, string encodedText){
+    // As we can't write individual bits to files, we arrange them in groups of 8
+    // and write the bytes.
+    int byte_index = 0;
+    unsigned char bit_buffer;
+
+    FILE *file;
+    file = fopen(filePath.c_str(), "w");
+
+    if (file == NULL){
+        cout << "Error opening file." << endl;
+    }
+
+    for (char c : encodedText){
+        int bit = c - '0';
+        if (bit){
+            bit_buffer |= (1<<byte_index);
+        }
+        byte_index++;
+        if (byte_index == 8){
+            fwrite (&bit_buffer, 1, 1, file);
+            byte_index = 0;
+            bit_buffer = 0;
+        }
+    }
+
+    // TODO: There will be a small amount of bits left to process, deal with it.
+    fclose (file);
+}
+
+string readCodeInBits(string filePath){
+    ifstream file;
+    file.open(filePath, ios::binary | ios::in);
+
+    string text = "";
+
+    char c;
+    while (file.get(c)){
+        for (int i = 0; i < 8; i++){
+            int bit = (c >> i) & 1;
+            text.push_back(bit + '0');
+        }
+    }
+    return text;
 }
 
 int main(){
     string text = "Huffman coding is a data compression algorithm.";
-    buildHuffmanTree(text);
+    string encoded = buildHuffmanTree(text);
+    string filePath = "file.bin";
+
+    writeCodeInBits(filePath, encoded);
+    string readText = readCodeInBits(filePath);
+    cout << readText << endl;
 
     return 0;
 }
