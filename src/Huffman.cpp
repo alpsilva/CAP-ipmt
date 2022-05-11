@@ -83,17 +83,18 @@ string decode(Node* root, int &index, string encodedText){
     return decodedText;
 }
 
-// Builds the huffman tree and 
-string buildHuffmanTree(string text){
-    if (text == ""){
-        return "";
-    }
-
+unordered_map<char, int> buildFrequencyTable(string text){
     // counts the frequency of each character in the text.
     unordered_map<char, int> frequency;
     for (char c : text){
         frequency[c] += 1;
     }
+
+    return frequency;
+}
+
+// Builds the huffman tree and 
+pair<Node*, unordered_map<char, string>> buildHuffmanTree(unordered_map<char, int> frequency){
 
     // Creates a priority queue to store the nodes of the in-progress huffman tree.
     // And for each character present in the text at least once, create a node and
@@ -130,9 +131,13 @@ string buildHuffmanTree(string text){
     for (auto pair: huffmanCode) {
         cout << pair.first << " " << pair.second << endl;
     }
- 
-    cout << "\nThe original string is:\n" << text << endl;
+    pair<Node*, unordered_map<char, string>> output;
+    output.first = huffmanTreeRoot;
+    output.second = huffmanCode;
+    return output;
+}
 
+string encodeText(string text, unordered_map<char, string> huffmanCode){
     string encodedString = "";
     for (char c : text){
         encodedString.append(
@@ -140,8 +145,12 @@ string buildHuffmanTree(string text){
         );
     }
 
-    cout << "\nThe encoded string is:\n" << encodedString << endl;
+    return encodedString;
+}
 
+string decodeText(string encodedText, unordered_map<char, int> frequency){
+    pair<Node*, unordered_map<char, string>> huffmanPair = buildHuffmanTree(frequency);
+    Node* huffmanTreeRoot = huffmanPair.first;
     string decodedString = "";
 
     if (isLeaf(huffmanTreeRoot)){
@@ -151,19 +160,17 @@ string buildHuffmanTree(string text){
         }
     } else {
         int index = -1;
-        while (index < (int)encodedString.size() - 1){
+        while (index < (int)encodedText.size() - 1){
             decodedString.append(
-                decode(huffmanTreeRoot, index, encodedString)
+                decode(huffmanTreeRoot, index, encodedText)
             );
         }
     }
 
-    cout << "\nThe decoded string is:\n" << decodedString << endl;
-
-    return encodedString;
+    return decodedString;
 }
 
-void writeCodeInBits(string filePath, string encodedText){
+void writeInBits(string filePath, string encodedText){
     // As we can't write individual bits to files, we arrange them in groups of 8
     // and write the bytes.
     int byte_index = 0;
@@ -193,7 +200,7 @@ void writeCodeInBits(string filePath, string encodedText){
     fclose (file);
 }
 
-string readCodeInBits(string filePath){
+string readInBits(string filePath){
     ifstream file;
     file.open(filePath, ios::binary | ios::in);
 
@@ -209,20 +216,61 @@ string readCodeInBits(string filePath){
     return text;
 }
 
+void writeCode(string filePath, unordered_map<char, string> huffmanCode){
+    ofstream file;
+    file.open(filePath);
+    for (auto pair: huffmanCode) {
+        file << pair.first << endl;
+        file << pair.second << endl;
+    }
+    file.close();
+}
+
+unordered_map<char, string> readCode(string filePath){
+    unordered_map<char, string> huffmanCode;
+    ifstream file;
+    string line;
+    file.open(filePath);
+    while(getline(file, line)){
+        char key = line[0];
+        getline(file, line);
+        huffmanCode[key] = line;
+        cout << key << " " << line << endl;
+    }
+    file.close();
+
+    return huffmanCode;
+}
+
 int main(){
     string text = "Huffman coding is a data compression algorithm.";
-    string encoded = buildHuffmanTree(text);
-    string filePath = "file.bin";
+    
+    unordered_map<char, int> frequency = buildFrequencyTable(text);
+    pair<Node*, unordered_map<char, string>> huffmanPair = buildHuffmanTree(frequency);
+    Node* huffmanTreeRoot = huffmanPair.first;
+    unordered_map<char, string> huffmanCode = huffmanPair.second;
+    
+    string encodedString = encodeText(text, huffmanCode);
+    string decodedString = decodeText(encodedString, frequency);
 
-    writeCodeInBits(filePath, encoded);
-    string readText = readCodeInBits(filePath);
-    cout << readText << endl;
+    cout << "The original string is:\n" << text << endl;
+
+    cout << "The encoded string is:\n" << encodedString << endl;
+    
+    cout << "The decoded string is:\n" << decodedString << endl;
+
+    writeCode("huffmanCodes.txt", huffmanCode);
+    huffmanCode = readCode("huffmanCodes.txt");
+    
+    // string filePath = "file.bin";
+
+    // writeCodeInBits(filePath, encoded);
+    // string readText = readCodeInBits(filePath);
+    // cout << readText << endl;
 
     return 0;
 }
 
 // TODO
-// 1. serialize tree struct
-// 2. save the encoded text as an array of bits of some sort, instead of string.
-// 3. save serialized tree and bits array to a file, so that they can be easily restored later.
-// 4. wrapper functions for compressing and decompressing files. 
+// Store the frequency table and bit encoded text in a single file.
+// wrapper functions for compressing and decompressing files. 
