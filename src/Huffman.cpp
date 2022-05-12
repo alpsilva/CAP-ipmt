@@ -209,7 +209,6 @@ pair<map<int, int>, string> readCompressedFile(string filePath){
     file.open(filePath, ios::binary | ios::in);
 
     getline(file, line);
-    cout << typeid(line).name() << endl;
     
     int charFrequencyAmount = stoi(line);
     for (int i = 0; i < charFrequencyAmount; i++){
@@ -242,11 +241,6 @@ void zip(string text, string compressedFilePath){
     map<int, int> frequency = buildFrequencyTable(text);
     pair<Node*, map<char, string>> huffmanPair = buildHuffmanTree(frequency);
     map<char, string> huffmanCode = huffmanPair.second;
-    cout << "Frequencias" << endl;
-    for (auto pair : frequency){
-        cout << (char) pair.first << ":" << pair.second << endl; 
-    }
-
 
     string encodedString = encodeText(text, huffmanCode);
     writeCompressedFile(compressedFilePath, frequency, encodedString);
