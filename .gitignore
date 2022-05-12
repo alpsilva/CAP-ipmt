@@ -1,0 +1,8 @@
+*.bin
+*.myz
+*.txt
+
+test-assets/
+bin/*
+
+.vscode
