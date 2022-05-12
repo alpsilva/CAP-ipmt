@@ -1,2 +1,5 @@
 *.bin
 *.myz
+*.txt
+
+test-assets/

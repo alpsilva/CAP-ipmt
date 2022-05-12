@@ -166,7 +166,7 @@ string decodeText(string encodedText, map<char, int> frequency){
     return decodedString;
 }
 
-void writeFile(string filePath, map<char, int> frequency, string encodedText){
+void writeCompressedFile(string filePath, map<char, int> frequency, string encodedText){
     ofstream file;
     file.open(filePath, ios::binary | ios::out);
     int charFrequencyAmount = frequency.size();
@@ -199,7 +199,7 @@ void writeFile(string filePath, map<char, int> frequency, string encodedText){
     file.close();
 }
 
-pair<map<char, int>, string> readFile(string filePath){
+pair<map<char, int>, string> readCompressedFile(string filePath){
     ifstream file;
     string line;
 
@@ -208,11 +208,14 @@ pair<map<char, int>, string> readFile(string filePath){
     file.open(filePath, ios::binary | ios::in);
 
     getline(file, line);
+    cout << typeid(line).name() << endl;
+    
     int charFrequencyAmount = stoi(line);
     for (int i = 0; i < charFrequencyAmount; i++){
         getline(file, line);
         char key = line[0];
         getline(file, line);
+        cout << line << endl;
         frequency[key] = stoi(line);
     }
 
@@ -235,42 +238,29 @@ pair<map<char, int>, string> readFile(string filePath){
     return output;
 }
 
-int main(){
-    string text = "Huffman coding is a data compression algorithm.";
-    
+void zip(string text, string compressedFilePath){
     map<char, int> frequency = buildFrequencyTable(text);
     pair<Node*, map<char, string>> huffmanPair = buildHuffmanTree(frequency);
-    Node* huffmanTreeRoot = huffmanPair.first;
     map<char, string> huffmanCode = huffmanPair.second;
-    
+
     string encodedString = encodeText(text, huffmanCode);
-    string decodedString = decodeText(encodedString, frequency);
-
-    cout << "The original string is:\n" << text << endl;
-
-    cout << "The encoded string is:\n" << encodedString << endl;
-    
-    cout << "The decoded string is:\n" << decodedString << endl;
-
-    string filePath = "file.myz";
-
-    writeFile(filePath, frequency, encodedString);
-    pair<map<char, int>, string> output;
-    output = readFile(filePath);
-    map<char, int> readFrequency = output.first;
-    string readEncodedText = output.second;
-    
-    // cout << "INFORMATION READ ON THE FILE" << endl;
-    // for (auto pair : readFrequency){
-    //     cout << pair.first << " " << pair.second << endl; 
-    // }
-    cout << readEncodedText << endl;
-
-    string readDecodedString = decodeText(readEncodedText, readFrequency);
-    cout << "The decoded string is:\n" << readDecodedString << endl;
-
-    return 0;
+    writeCompressedFile(compressedFilePath, frequency, encodedString);
 }
 
-// TODO
-// wrapper functions for compressing and decompressing files. 
+void unzip(string compressedFilePath, string decompressedTextFilePath){
+    pair<map<char, int>, string> output;
+    output = readCompressedFile(compressedFilePath);
+    map<char, int> frequency = output.first;
+    string encodedText = output.second;
+    
+    string decodedString = decodeText(encodedText, frequency);
+
+    ofstream file;
+    file.open(decompressedTextFilePath, ios::out);
+
+    file << decodedString << endl;
+
+    file.close();
+}
+
+// Todo: Rest of bits.
