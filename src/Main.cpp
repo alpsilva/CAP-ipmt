@@ -30,13 +30,10 @@ int main(int argc, char *argv[]){
             cout << "You have to provide a textfile." << endl;
         }
         file = argv[2];
-        cout << "cheguei aqui" << endl;
+        
         ifstream t(file);
         stringstream buffer;
         buffer << t.rdbuf();
-
-        cout << "Li a string" << endl;
-
 
         string text = buffer.str();
         string compressedFilePath = "";
@@ -50,7 +47,7 @@ int main(int argc, char *argv[]){
             }
         }
 
-        compressedFilePath += ".bin";
+        compressedFilePath += ".myz";
         
         zip(text, compressedFilePath);
     }

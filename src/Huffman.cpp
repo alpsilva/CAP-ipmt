@@ -83,18 +83,19 @@ string decode(Node* root, int &index, string encodedText){
     return decodedText;
 }
 
-map<char, int> buildFrequencyTable(string text){
+map<int, int> buildFrequencyTable(string text){
     // counts the frequency of each character in the text.
-    map<char, int> frequency;
+    map<int, int> frequency;
     for (char c : text){
-        frequency[c] += 1;
+        int ic = (int) c;
+        frequency[ic] += 1;
     }
 
     return frequency;
 }
 
 // Builds the huffman tree and 
-pair<Node*, map<char, string>> buildHuffmanTree(map<char, int> frequency){
+pair<Node*, map<char, string>> buildHuffmanTree(map<int, int> frequency){
 
     // Creates a priority queue to store the nodes of the in-progress huffman tree.
     // And for each character present in the text at least once, create a node and
@@ -103,7 +104,7 @@ pair<Node*, map<char, string>> buildHuffmanTree(map<char, int> frequency){
 
     for (auto pair: frequency) {
         queue.push(
-            createNode(pair.first, pair.second, nullptr, nullptr)
+            createNode((char) pair.first, pair.second, nullptr, nullptr)
         );
     }
 
@@ -144,7 +145,7 @@ string encodeText(string text, map<char, string> huffmanCode){
     return encodedString;
 }
 
-string decodeText(string encodedText, map<char, int> frequency){
+string decodeText(string encodedText, map<int, int> frequency){
     pair<Node*, map<char, string>> huffmanPair = buildHuffmanTree(frequency);
     Node* huffmanTreeRoot = huffmanPair.first;
     string decodedString = "";
@@ -166,7 +167,7 @@ string decodeText(string encodedText, map<char, int> frequency){
     return decodedString;
 }
 
-void writeCompressedFile(string filePath, map<char, int> frequency, string encodedText){
+void writeCompressedFile(string filePath, map<int, int> frequency, string encodedText){
     ofstream file;
     file.open(filePath, ios::binary | ios::out);
     int charFrequencyAmount = frequency.size();
@@ -199,11 +200,11 @@ void writeCompressedFile(string filePath, map<char, int> frequency, string encod
     file.close();
 }
 
-pair<map<char, int>, string> readCompressedFile(string filePath){
+pair<map<int, int>, string> readCompressedFile(string filePath){
     ifstream file;
     string line;
 
-    map<char, int> frequency;
+    map<int, int> frequency;
 
     file.open(filePath, ios::binary | ios::in);
 
@@ -213,9 +214,8 @@ pair<map<char, int>, string> readCompressedFile(string filePath){
     int charFrequencyAmount = stoi(line);
     for (int i = 0; i < charFrequencyAmount; i++){
         getline(file, line);
-        char key = line[0];
+        int key = stoi(line);
         getline(file, line);
-        cout << line << endl;
         frequency[key] = stoi(line);
     }
 
@@ -231,7 +231,7 @@ pair<map<char, int>, string> readCompressedFile(string filePath){
 
     file.close();
     
-    pair<map<char, int>, string> output;
+    pair<map<int, int>, string> output;
     output.first = frequency;
     output.second = encodedText;
     
@@ -239,18 +239,23 @@ pair<map<char, int>, string> readCompressedFile(string filePath){
 }
 
 void zip(string text, string compressedFilePath){
-    map<char, int> frequency = buildFrequencyTable(text);
+    map<int, int> frequency = buildFrequencyTable(text);
     pair<Node*, map<char, string>> huffmanPair = buildHuffmanTree(frequency);
     map<char, string> huffmanCode = huffmanPair.second;
+    cout << "Frequencias" << endl;
+    for (auto pair : frequency){
+        cout << (char) pair.first << ":" << pair.second << endl; 
+    }
+
 
     string encodedString = encodeText(text, huffmanCode);
     writeCompressedFile(compressedFilePath, frequency, encodedString);
 }
 
 void unzip(string compressedFilePath, string decompressedTextFilePath){
-    pair<map<char, int>, string> output;
+    pair<map<int, int>, string> output;
     output = readCompressedFile(compressedFilePath);
-    map<char, int> frequency = output.first;
+    map<int, int> frequency = output.first;
     string encodedText = output.second;
     
     string decodedString = decodeText(encodedText, frequency);
