@@ -3,6 +3,7 @@
 *.txt
 
 test-assets/
+.ipynb_checkpoints
 bin/*
 
 .vscode
