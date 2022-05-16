@@ -36,18 +36,7 @@ int main(int argc, char *argv[]){
         buffer << t.rdbuf();
 
         string text = buffer.str();
-        string compressedFilePath = "";
-
-        for (int i = 0; i < file.size(); i++){
-            char c = file[i];
-            if (c != '.'){
-                compressedFilePath.push_back(c);
-            } else {
-                i = file.size();
-            }
-        }
-
-        compressedFilePath += ".myz";
+        string compressedFilePath = file + ".myz";
         
         zip(text, compressedFilePath);
     }
@@ -58,18 +47,7 @@ int main(int argc, char *argv[]){
         }
         file = argv[2];
 
-        string decompressedTextFilePath = "";
-
-        for (int i = 0; i < file.size(); i++){
-            char c = file[i];
-            if (c != '.'){
-                decompressedTextFilePath.push_back(c);
-            } else {
-                i = file.size();
-            }
-        }
-
-        decompressedTextFilePath += ".txt";
+        string decompressedTextFilePath = file.substr(0, (file.size() - 4));
 
         unzip(file, decompressedTextFilePath);
     }
