@@ -107,6 +107,11 @@ pair<Node*, map<char, string>> buildHuffmanTree(map<int, int> frequency){
     map<char, string> huffmanCode;
     encode(huffmanTreeRoot, "", huffmanCode);
 
+    // cout << "Huffman codes" << endl;
+    // for (auto pair : huffmanCode){
+    //     cout << pair.first << " : " << pair.second << endl;
+    // }
+
     pair<Node*, map<char, string>> output;
     output.first = huffmanTreeRoot;
     output.second = huffmanCode;
@@ -141,19 +146,14 @@ string decodeText(string encodedText, map<int, int> frequency){
         for (auto pair : huffmanCodes){
             invertedHuffmanCodes[pair.second] = pair.first;
         }
-        cout << "Huffman codes" << endl;
-        for (auto pair : invertedHuffmanCodes){
-            cout << pair.first << " : " << pair.second << endl;
-        }
-        cout << encodedText << endl;
+
         string encodedSubstring = "";
-        cout << "Decoding..." << endl;
+
         char lastC;
         for (char c : encodedText){
             encodedSubstring.push_back(c);
             // Checks if the current code can be found in the key list of the huffman code table.
             if (invertedHuffmanCodes.find(encodedSubstring) != invertedHuffmanCodes.end()){
-                cout << "match: " << encodedSubstring << " : " << invertedHuffmanCodes[encodedSubstring] << endl;
                 decodedString.push_back(
                     invertedHuffmanCodes[encodedSubstring]
                 );
@@ -176,8 +176,6 @@ void writeCompressedFile(string filePath, map<int, int> frequency, string encode
         file << pair.first << endl;
         file << pair.second << endl;
     }
-
-    cout << encodedText << endl;
     
     // As we can't write individual bits to files, we arrange them in groups of 8
     // and write the bytes.
@@ -198,7 +196,6 @@ void writeCompressedFile(string filePath, map<int, int> frequency, string encode
         byte_index++;
         if (byte_index == 8){
             file << bit_buffer;
-            // fwrite (&bit_buffer, 1, 1, file);
             byte_index = 0;
             bit_buffer = 0;
         }
@@ -218,8 +215,8 @@ pair<map<int, int>, string> readCompressedFile(string filePath){
     file.open(filePath, ios::binary | ios::in);
 
     getline(file, line);
-    
     int charFrequencyAmount = stoi(line);
+
     for (int i = 0; i < charFrequencyAmount; i++){
         getline(file, line);
         int key = stoi(line);
