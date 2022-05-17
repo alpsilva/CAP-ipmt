@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <queue>
+#include <vector>
 
 using namespace std;
 
@@ -59,28 +60,6 @@ void encode(Node* root, string code, map<char, string> &huffmanCode){
 
     encode(root->left, (code + "0"), huffmanCode);
     encode(root->right, (code + "1"), huffmanCode);
-}
-
-// Uses the huffman tree to decode an encoded text.
-string decode(Node* root, int &index, string encodedText){
-    string decodedText = "";
-
-    if (root != nullptr){
-        if (isLeaf(root)){
-            decodedText.push_back(root->c);
-            return decodedText;
-        }
-
-        index++;
-
-        if (encodedText[index] == '0'){
-            decodedText.append(decode(root->left, index, encodedText));
-        } else {
-            decodedText.append(decode(root->right, index, encodedText));
-        }
-    }
-
-    return decodedText;
 }
 
 map<int, int> buildFrequencyTable(string text){
@@ -148,6 +127,7 @@ string encodeText(string text, map<char, string> huffmanCode){
 string decodeText(string encodedText, map<int, int> frequency){
     pair<Node*, map<char, string>> huffmanPair = buildHuffmanTree(frequency);
     Node* huffmanTreeRoot = huffmanPair.first;
+    map<char, string> huffmanCodes = huffmanPair.second;
     string decodedString = "";
 
     if (isLeaf(huffmanTreeRoot)){
@@ -156,11 +136,30 @@ string decodeText(string encodedText, map<int, int> frequency){
             decodedString.push_back(huffmanTreeRoot->c);
         }
     } else {
-        int index = -1;
-        while (index < (int)encodedText.size() - 1){
-            decodedString.append(
-                decode(huffmanTreeRoot, index, encodedText)
-            );
+        map<string, char> invertedHuffmanCodes;
+
+        for (auto pair : huffmanCodes){
+            invertedHuffmanCodes[pair.second] = pair.first;
+        }
+        cout << "Huffman codes" << endl;
+        for (auto pair : invertedHuffmanCodes){
+            cout << pair.first << " : " << pair.second << endl;
+        }
+        cout << encodedText << endl;
+        string encodedSubstring = "";
+        cout << "Decoding..." << endl;
+        char lastC;
+        for (char c : encodedText){
+            encodedSubstring.push_back(c);
+            // Checks if the current code can be found in the key list of the huffman code table.
+            if (invertedHuffmanCodes.find(encodedSubstring) != invertedHuffmanCodes.end()){
+                cout << "match: " << encodedSubstring << " : " << invertedHuffmanCodes[encodedSubstring] << endl;
+                decodedString.push_back(
+                    invertedHuffmanCodes[encodedSubstring]
+                );
+                encodedSubstring = "";
+            }
+            lastC = c;
         }
     }
 
@@ -177,11 +176,19 @@ void writeCompressedFile(string filePath, map<int, int> frequency, string encode
         file << pair.first << endl;
         file << pair.second << endl;
     }
+
+    cout << encodedText << endl;
     
     // As we can't write individual bits to files, we arrange them in groups of 8
     // and write the bytes.
     int byte_index = 0;
     unsigned char bit_buffer;
+    
+    int completeByteAmount = (encodedText.size() / 8);
+    int remainder = encodedText.size() % 8;
+
+    file << completeByteAmount << endl;
+    file << remainder << endl;
 
     for (char c : encodedText){
         int bit = c - '0';
@@ -196,6 +203,8 @@ void writeCompressedFile(string filePath, map<int, int> frequency, string encode
             bit_buffer = 0;
         }
     }
+
+    file << bit_buffer;
 
     file.close();
 }
@@ -218,14 +227,38 @@ pair<map<int, int>, string> readCompressedFile(string filePath){
         frequency[key] = stoi(line);
     }
 
-    // Encoded text
+    getline(file, line);
+    int charListSize = stoi(line);
+
+    getline(file, line);
+    int remainder = stoi(line);
+
     string encodedText = "";
+
+    vector<char> completeCharList(charListSize);
     char c;
-    while(file.get(c)){
+    char lastC;
+
+    // Reads the bits from the file and puts them in a vector for later processing.
+    for (int i = 0; i < charListSize; i++){
+        file.get(c);
+        completeCharList[i] = c;
+    }
+
+    file.get(c);
+    lastC = c;
+
+    for (int i = 0; i < charListSize; i++){
+        char c = completeCharList[i];
         for (int i = 0; i < 8; i++){
             int bit = (c >> i) & 1;
             encodedText.push_back(bit + '0');
         }
+    }
+
+    for (int i = 0; i < remainder; i++){
+        int bit = (lastC >> i) & 1;
+        encodedText.push_back(bit + '0');
     }
 
     file.close();
@@ -261,5 +294,3 @@ void unzip(string compressedFilePath, string decompressedTextFilePath){
 
     file.close();
 }
-
-// Todo: Rest of bits.
