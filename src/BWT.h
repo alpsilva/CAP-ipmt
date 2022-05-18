@@ -18,8 +18,11 @@ struct BwtTable
     struct StringRemapTable* stringRemapTable;
     struct suffixArray* suffixArray;
     uint32_t* characterTable;
+    size_t characterTableSize;
     uint32_t* oTable;
+    size_t oTableSize;
     uint32_t** oIndices;
+    size_t oIndicesSize;
 };
 
 struct Iterator
@@ -35,5 +38,7 @@ void createBwtTable(struct BwtTable* bwtTable, struct suffixArray* suffixArray, 
 void createIterator(struct Iterator* iter, struct BwtTable* bwtTable, const uint8_t* remapped_pattern);
 
 bool findNextMatch(struct Iterator* iter, size_t* pos);
+
+void recreateOIndices(struct BwtTable* bwtTable);
 
 #endif // !BWT-SEARCH_H

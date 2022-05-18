@@ -24,7 +24,8 @@ void buildSLTypes(const uint32_t* uintString, bool* SLTypes, uint32_t suffixArra
 	}
 }
 
-bool isLeftmostS(bool* LSTypes, uint32_t i) {
+bool isLeftmostS(bool* LSTypes, uint32_t i) 
+{
 	if (i == 0)
 	{
 		return false;

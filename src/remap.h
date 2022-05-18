@@ -11,8 +11,8 @@
 struct StringRemapTable 
 {
 	char charTable[256];
-	char remappedCharTable[128];
-	uint32_t alphabetSize;
+	char remappedCharTable[192];
+	uint8_t alphabetSize;
 };
 
 void createRemapTable(struct StringRemapTable* stringRemapTable, const uint8_t* string);
