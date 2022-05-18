@@ -17,12 +17,49 @@ int main(int argc, char *argv[]){
         How to use IPMT:
         ipmt zip <textFilePath>
         ipmt unzip <compressedFilePath>
+        ipmt index <textFilePath>
+        ipmt search [options] pattern <textFilePath>
     )";
     // Obligatory
     string textFile = "";
+
+    string patternFile = "";
+    bool isCount = false;
+
+    int optionalArgs = argc - 2;
+    string argv1 = argv[1];
+    if(argc == 2 && (argv1 == "-h" || argv1 == "--help")) {
+        cout << helpText << endl;
+        return 0;
+    }  
+
+    
+    vector<string> patternList;
+    if (patternFile.size() > 0){
+        patternList = readStringFromFile(patternFile.data());
+
+    } else {
+        patternList.push_back(argv[argc-2]);
+    }
+
+    for (int i = 2; i < optionalArgs; i++){
+            string arg = argv[i];
+            if(arg == "-h" || arg == "--help") {
+                cout << helpText << endl;
+            }
+            if (arg == "-p" || arg == "--pattern") {
+                patternFile = argv[++i];
+                optionalArgs++;
+            } else if (arg == "-c" || arg == "--count") {
+                isCount = true;
+            } else {
+                cout << "Option does not exist: " << arg << endl;
+                return 0;
+            }
+        }
     
     if (argc < 2){
-        cout << "You have to provide a command. Use \"ipmt --help\" to see available options." << endl;
+        cout << "You have to provide a command. Use \"ipmt --help or ipmt -h\" to see available options." << endl;
     }
     string mode = argv[1];
     string file;
@@ -56,6 +93,7 @@ int main(int argc, char *argv[]){
     else if (mode == "index"){
         if (argc < 3){ 
             cout << "You have to provide a textfile." << endl;
+            return 1;
         }
         file = argv[2];
         saveIndexFile(file);
@@ -63,29 +101,9 @@ int main(int argc, char *argv[]){
     else if (mode == "search"){
         if (argc < 4){ 
             cout << "You have to provide a pattern and a textfile." << endl;
+            return 1;
         }
-        string patternFile = "";
-        bool isCount = false;
-        int optionalArgs = argc - 2;
-        for (int i = 2; i < optionalArgs; i++){
-            string arg = argv[i];
-            if (arg == "-p" || arg == "--pattern") {
-                patternFile = argv[++i];
-                optionalArgs++;
-            } else if (arg == "-c" || arg == "--count") {
-                isCount = true;
-            } else {
-                cout << "Option does not exist: " << arg << endl;
-                return 0;
-            }
-        }
-        vector<string> patternList;
-        if (patternFile.size() > 0){
-            patternList = readStringFromFile(patternFile.data());
-
-        } else {
-            patternList.push_back(argv[argc-2]);
-        }
+        
         file = argv[argc-1];
         searchPattern(file, patternList, isCount);
     }
