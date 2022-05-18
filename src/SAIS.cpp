@@ -231,9 +231,9 @@ void recursiveSorting(uint32_t* uintString, size_t suffixArrayLen, uint32_t* tem
 	induceS(uintString, suffixArrayLen, alphabetSize, tempSuffixArray, SLTypes, bucketSizes, bucketEnds);
 }
 
-struct suffixArray* buildSuffixArray(uint8_t* remappedString, size_t remappedStringSize, uint32_t alphabetSize)
+struct SuffixArray* buildSuffixArray(uint8_t* remappedString, size_t remappedStringSize, uint32_t alphabetSize)
 {
-	struct suffixArray* suffixArray = initSuffixArray(remappedString, remappedStringSize);
+	struct SuffixArray* suffixArray = initSuffixArray(remappedString, remappedStringSize);
 
 	size_t suffixArrayLen = suffixArray->length - 1;
 	uint32_t* uintString = (uint32_t*)malloc((suffixArrayLen + 1) * sizeof(uint32_t));

@@ -1,6 +1,6 @@
 #include "BWT.h"
 
-unsigned char bwt(const struct suffixArray* suffixArray, uint32_t i)
+unsigned char bwt(const struct SuffixArray* suffixArray, uint32_t i)
 {
     uint32_t suffix = suffixArray->suffixArray[i];
     if (suffix == 0)
@@ -13,7 +13,7 @@ unsigned char bwt(const struct suffixArray* suffixArray, uint32_t i)
     }
 }
 
-void createBwtTable(struct BwtTable* bwtTable, struct suffixArray* suffixArray, struct StringRemapTable* stringRemapTable) 
+void createBwtTable(struct BwtTable* bwtTable, struct SuffixArray* suffixArray, struct StringRemapTable* stringRemapTable) 
 {
     bwtTable->stringRemapTable = stringRemapTable;
     bwtTable->suffixArray = suffixArray;
@@ -79,7 +79,7 @@ void createBwtTable(struct BwtTable* bwtTable, struct suffixArray* suffixArray, 
 
 void createIterator(struct Iterator* iter, struct BwtTable* bwtTable, const uint8_t* remapped_pattern) 
 {
-    const struct suffixArray* suffixArray = iter->suffixArray = bwtTable->suffixArray;
+    const struct SuffixArray* suffixArray = iter->suffixArray = bwtTable->suffixArray;
     uint32_t suffixArrayLen = suffixArray->length;
     uint32_t m = (uint32_t)strlen((char*)remapped_pattern);
     iter->left = 0;

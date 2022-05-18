@@ -11,14 +11,10 @@
 
 #include <fcntl.h>
 
+#include "SA.h"
+#include "BWT.h"
+#include "SAIS.h"    
 
-extern "C"
-{
-    #include "SA.h"
-    #include "BWT.h"
-    #include "remap.h"
-    #include "SAIS.h"    
-}
 
 using namespace std;
 
@@ -398,10 +394,10 @@ struct sliceIndexes sarrSearch(const string& text, const string& pattern, int* s
 
 
 */
-void saveIndexFile() {
+void saveIndexFile(string fileName) {
 
     FILE* textFile;
-    if ((textFile = fopen("shakespeare_all_texts_lowercase.txt", "r")) == NULL) {
+    if ((textFile = fopen(fileName.data(), "r")) == NULL) {
         cout << "couldn't open textFile\n" << endl;
         exit(1);
     }
@@ -432,7 +428,7 @@ void saveIndexFile() {
     uint8_t* remmapedPattern = (uint8_t*)malloc(sizeof(uint8_t) * 8);
     remapString(remmapedPattern, pattern, &rt);
 
-    struct suffixArray* newSa = buildSuffixArray(remapped, remappedStringSize, rt.alphabetSize);
+    struct SuffixArray* newSa = buildSuffixArray(remapped, remappedStringSize, rt.alphabetSize);
     struct BwtTable bwtTable;
     createBwtTable(&bwtTable, newSa, &rt);
 
@@ -458,13 +454,13 @@ void saveIndexFile() {
     
 
     FILE* saveFile;
-    if ((saveFile = fopen("shakespeare_all_texts_lowercase.idx", "wb")) == NULL)
+    if ((saveFile = fopen((fileName + ".idx").data(), "wb")) == NULL)
     {
         cout << "failed to create textFile" << endl;
     }
     uint32_t count = 0;
     fwrite(&fileSize, sizeof(size_t), 1, saveFile);
-    fwrite(&bwtTable.suffixArray->length, sizeof(size_t), 1, saveFile);
+    fwrite(&newSa->length, sizeof(size_t), 1, saveFile);
     fwrite(&bwtTable.characterTableSize, sizeof(size_t), 1, saveFile);
     fwrite(&bwtTable.oTableSize, sizeof(size_t), 1, saveFile);
     fwrite(&bwtTable.oIndicesSize, sizeof(size_t), 1, saveFile);
@@ -488,7 +484,6 @@ void saveIndexFile() {
 
     fwrite(str, sizeof(uint8_t), fileSize, saveFile);
     count = fwrite(newSa->suffixArray, sizeof(uint32_t), bwtTable.suffixArray->length, saveFile);
-    printf("%li", bwtTable.suffixArray->length);
     if (count != bwtTable.suffixArray->length)
     {
         printf("couldn't write suffixArray");
@@ -575,12 +570,11 @@ void saveIndexFile() {
     /*;*/
 }
 
-void onlyOneLine() 
+void searchPattern(string fileName, vector<string> patterns, bool isCount) 
 {
-    auto start = std::chrono::high_resolution_clock::now();
-
+    cout << (fileName).data() << endl;
     FILE* indexFile;
-    if ((indexFile = fopen("shakespeare_all_texts_lowercase.idx", "rb")) == NULL) {
+    if ((indexFile = fopen((fileName).data(), "rb")) == NULL) {
         cout << "couldn't open textFile\n" << endl;
         exit(1);
     }
@@ -596,6 +590,7 @@ void onlyOneLine()
     fread(&bwtOTableSize, sizeof(size_t), 1, indexFile);
     fread(&bwtOIndicesSize, sizeof(size_t), 1, indexFile);
 
+
     uint8_t* str = (uint8_t*)malloc(sizeof(uint8_t) * strLen);
     BwtTable bwtTable;
     bwtTable.characterTable = (uint32_t*)malloc(sizeof(uint32_t) * bwtCharacterTableSize);
@@ -603,60 +598,67 @@ void onlyOneLine()
     bwtTable.oIndices = (uint32_t**)malloc(sizeof(uint32_t*) * bwtOIndicesSize);
     StringRemapTable rt;
     bwtTable.stringRemapTable = &rt;
-    struct suffixArray* suffixArray = (struct suffixArray*)malloc(sizeof(struct suffixArray));
+    struct SuffixArray* suffixArray = (struct SuffixArray*)malloc(sizeof(struct SuffixArray));
     suffixArray->suffixArray = (uint32_t*)malloc(sizeof(uint32_t) * suffixArrayLen);
     suffixArray->length = suffixArrayLen;
 
-    cout << fread(&bwtTable.stringRemapTable->alphabetSize, sizeof(uint8_t), 1, indexFile) <<endl;
-    cout << fread(bwtTable.stringRemapTable->charTable, sizeof(char), 256, indexFile) << endl;
+    fread(&bwtTable.stringRemapTable->alphabetSize, sizeof(uint8_t), 1, indexFile);
+    fread(bwtTable.stringRemapTable->charTable, sizeof(char), 256, indexFile);
     fread(bwtTable.stringRemapTable->remappedCharTable, sizeof(char), 192, indexFile);
 
-    cout <<fread(str, sizeof(uint8_t), strLen, indexFile) << endl;
+
+    fread(str, sizeof(uint8_t), strLen, indexFile);
+    suffixArrayLen;
     fread(suffixArray->suffixArray, sizeof(uint32_t), suffixArray->length, indexFile);
+
     fread(bwtTable.characterTable, sizeof(uint32_t), bwtCharacterTableSize, indexFile);
     fread(bwtTable.oTable, sizeof(uint32_t), bwtOTableSize, indexFile);
     
 
     fclose(indexFile);
-
     bwtTable.suffixArray = suffixArray;
-
     recreateOIndices(&bwtTable);
 
 
-
-    uint8_t* pattern = (uint8_t*)malloc(sizeof(uint8_t) * 8);
-    strcpy((char*)pattern, "hellish");
-
-    uint8_t* remmapedPattern = (uint8_t*)malloc(sizeof(uint8_t) * 8);
-    remapString(remmapedPattern, pattern, &rt);
-
-    struct Iterator iter;
-    size_t pos;
-
-    createIterator(&iter, &bwtTable, remmapedPattern);
-    int count = 0;
-    vector<uint32_t> positions;
-    unordered_map<uint32_t, uint32_t> asd;
-    while (findNextMatch(&iter, &pos))
+    for(string pattern : patterns)
     {
-        uint32_t startPos = pos;
-        int64_t finishPos = pos;
-        while (str[startPos] != '\n' || startPos == 0) startPos--;
-        while (str[finishPos] != '\n' || finishPos == (strLen - 1)) finishPos++;
-        fwrite(str + (startPos * sizeof(char)), sizeof(char), finishPos - startPos, stdout);
-        printf("\n");
-        count++;
+        if(pattern.size() == 0) continue;
+        auto start = std::chrono::high_resolution_clock::now();
+
+        uint8_t* remmapedPattern = (uint8_t*)malloc(sizeof(uint8_t) * pattern.length());
+        remapString(remmapedPattern, (const uint8_t*) pattern.data(), &rt);
+
+        struct Iterator iter;
+        size_t pos;
+
+        createIterator(&iter, &bwtTable, remmapedPattern);
+        int count = 0;
+        while (findNextMatch(&iter, &pos))
+        {
+            uint32_t startPos = pos;
+            int64_t finishPos = pos;
+            if(!isCount)
+            {
+                while (str[startPos] != '\n' || startPos == 0) startPos--;
+                while (str[finishPos] != '\n' || finishPos == (strLen - 1)) finishPos++;
+                fwrite(str + (startPos * sizeof(char)), sizeof(char), finishPos - startPos, stdout);
+                printf("\n");
+            }
+            else
+            {
+                count++;
+            }            
+        }
+
+        if(isCount) cout << count << endl;
+
+        auto end = std::chrono::high_resolution_clock::now();
+        auto int_s = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout << "search elapsed time is " << int_s.count() << " microseconds )" << std::endl;
+        free(remmapedPattern);
     }
-
-    auto end = std::chrono::high_resolution_clock::now();
-
-    auto int_s = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-    std::cout << "search elapsed time is " << int_s.count() << " microseconds )" << std::endl;
-
     
-    free(suffixArray->text);
+
     free(suffixArray->suffixArray);
     free(bwtTable.characterTable);
     free(bwtTable.oTable);
@@ -701,11 +703,11 @@ void onlyOneLine()
 
 }
 
-int main()
+int suffixArray()
 {
 
     //saveIndexFile();
-    onlyOneLine();
+    //onlyOneLine();
     /*
     //string text = "aeaeabd";
     //string ab = "abcde";

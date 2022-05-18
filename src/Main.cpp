@@ -1,4 +1,5 @@
 #include "Huffman.cpp"
+#include "sufixArray.cpp"
 #include <sstream>
 
 using namespace std;
@@ -53,11 +54,40 @@ int main(int argc, char *argv[]){
     }
 
     else if (mode == "index"){
-        // Todo
+        if (argc < 3){ 
+            cout << "You have to provide a textfile." << endl;
+        }
+        file = argv[2];
+        saveIndexFile(file);
     }
-
     else if (mode == "search"){
-        // Todo
+        if (argc < 4){ 
+            cout << "You have to provide a pattern and a textfile." << endl;
+        }
+        string patternFile = "";
+        bool isCount = false;
+        int optionalArgs = argc - 2;
+        for (int i = 2; i < optionalArgs; i++){
+            string arg = argv[i];
+            if (arg == "-p" || arg == "--pattern") {
+                patternFile = argv[++i];
+                optionalArgs++;
+            } else if (arg == "-c" || arg == "--count") {
+                isCount = true;
+            } else {
+                cout << "Option does not exist: " << arg << endl;
+                return 0;
+            }
+        }
+        vector<string> patternList;
+        if (patternFile.size() > 0){
+            patternList = readStringFromFile(patternFile.data());
+
+        } else {
+            patternList.push_back(argv[argc-2]);
+        }
+        file = argv[argc-1];
+        searchPattern(file, patternList, isCount);
     }
 
     else {
