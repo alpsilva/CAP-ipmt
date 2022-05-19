@@ -32,8 +32,24 @@ int main(int argc, char *argv[]){
         cout << helpText << endl;
         return 0;
     }  
+ 
 
-    
+    for (int i = 2; i < optionalArgs; i++){
+        string arg = argv[i];
+        if(arg == "-h" || arg == "--help") {
+            cout << helpText << endl;
+        }
+        if (arg == "-p" || arg == "--pattern") {
+            patternFile = argv[++i];
+            optionalArgs++;
+        } else if (arg == "-c" || arg == "--count") {
+            isCount = true;
+        } else {
+            cout << "Option does not exist: " << arg << endl;
+            return 0;
+        }
+    }
+
     vector<string> patternList;
     if (patternFile.size() > 0){
         patternList = readStringFromFile(patternFile.data());
@@ -41,22 +57,6 @@ int main(int argc, char *argv[]){
     } else {
         patternList.push_back(argv[argc-2]);
     }
-
-    for (int i = 2; i < optionalArgs; i++){
-            string arg = argv[i];
-            if(arg == "-h" || arg == "--help") {
-                cout << helpText << endl;
-            }
-            if (arg == "-p" || arg == "--pattern") {
-                patternFile = argv[++i];
-                optionalArgs++;
-            } else if (arg == "-c" || arg == "--count") {
-                isCount = true;
-            } else {
-                cout << "Option does not exist: " << arg << endl;
-                return 0;
-            }
-        }
     
     if (argc < 2){
         cout << "You have to provide a command. Use \"ipmt --help or ipmt -h\" to see available options." << endl;

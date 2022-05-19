@@ -78,7 +78,6 @@ void saveIndexFile(string fileName) {
 
 void searchPattern(string fileName, vector<string> patterns, bool isCount) 
 {
-    cout << (fileName).data() << endl;
     FILE* indexFile;
     if ((indexFile = fopen((fileName).data(), "rb")) == NULL) {
         cout << "couldn't open textFile\n" << endl;
