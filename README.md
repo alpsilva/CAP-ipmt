@@ -28,12 +28,20 @@ ipmt can decompress the signature file extension ".myz":
 ipmt unzip some_compressed_file.myz 
 ```
 
-## Indexed Search
+## Indexing
 
-ipmt accepts args in this way:
+ipmt can index a text file:
 ```
-ipmt [options] [command] file 
+ipmt index text_file.txt 
 ```
+
+## exact match
+
+ipmt can search in a index file:
+```
+ipmt [options] pattern file.idx
+```
+
 For a list of accepted options and commands, simply use:
 ```
 ipmt -h 
@@ -80,12 +88,20 @@ ipmt é capaz de descomprimir arquivos com a extensão própria ".myz":
 ipmt unzip some_compressed_file.myz 
 ```
 
-## Busca Indexada
+## indexação
 
-ipmt aceita opções dessa forma:
+ipmt consegue indexar um arquivo da forma seguinte:
 ```
-ipmt [options] pattern textfile 
+ipmt index text_file.txt 
 ```
+
+## busca exata
+
+ipmt consegue buscar padrões em um arquivo indexado:
+```
+ipmt [options] pattern file.idx
+```
+
 Para uma lista de opções disponíveis, use:
 ```
 ipmt -h 
